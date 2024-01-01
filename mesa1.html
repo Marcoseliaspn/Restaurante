@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesa 1 - Restaurante </title>
+    <style type="text/css">
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        #header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        #logo {
+            width: 100px;
+            height: auto;
+        }
+
+        #restaurant-name {
+            font-size: 25px;
+            margin-top: 10px;
+        }
+
+        #menu-navigation {
+            font-size: 18px;
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        #menu-navigation a {
+            text-decoration: none;
+            color: white;
+            margin-right: 15px;
+        }
+
+        #note-container {
+            width: 80%;
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+        }
+
+        #note-text {
+            width: 97%;
+            height: 150px;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        #name-input {
+            width: 97%;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        #save-button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            display: block;
+            margin: 0 auto;
+            transition: background-color 0.3s;
+        }
+
+        #save-button:hover {
+            background-color: #45a049;
+        }
+
+        #messages-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column; /* Alterado para exibir as mensagens em coluna */
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column; /* Alterado para exibir o nome e o texto em coluna */
+        }
+
+        .message-content {
+            flex-grow: 1;
+        }
+
+        .message-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .cancel-button {
+            padding: 5px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+
+        .cancel-button:hover {
+            background-color: #c0392b;
+        }
+
+        #clear-messages-button {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            display: block;
+            margin: 0 auto;
+            transition: background-color 0.3s;
+        }
+
+        #clear-messages-button:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <img id="logo" src="logo.png" alt="Logo do Restaurante">
+        <div id="restaurant-name">Mesa 1</div>
+        <div id="menu-navigation">
+            <a href="index.html">Home</a>
+        </div>
+    </div>
+
+    <div id="note-container">
+        <textarea id="note-text" placeholder="Faça suas anotações aqui..."></textarea>
+        <input type="text" id="name-input" placeholder="Seu Nome">
+        <button id="save-button" onclick="saveNote()">Salvar Anotação</button>
+    </div>
+
+    <div id="messages-container"></div>
+
+    <button id="clear-messages-button" onclick="confirmClearMessages()">Limpar Mensagens</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            displayMessages();
+
+            // Carregar nome salvo, se existir
+            const savedName = localStorage.getItem('saved-name');
+            if (savedName) {
+                document.getElementById('name-input').value = savedName;
+            }
+        });
+
+        function saveNote() {
+            const noteText = document.getElementById('note-text').value;
+            const senderName = document.getElementById('name-input').value || 'Anônimo';
+            const currentTime = new Date();
+            const hours = currentTime.getHours();
+            const minutes = currentTime.getMinutes();
+            const seconds = currentTime.getSeconds();
+            const timestamp = `${hours}:${minutes}:${seconds}`;
+
+            let messages = JSON.parse(localStorage.getItem('comanda-mesa-1')) || [];
+            messages.push({ sender: senderName, text: noteText, timestamp: timestamp });
+
+            localStorage.setItem('comanda-mesa-1', JSON.stringify(messages));
+
+            // Salvar nome
+            localStorage.setItem('saved-name', senderName);
+
+            // Limpar os campos de texto
+            document.getElementById('note-text').value = '';
+
+            // Atualizar a exibição das mensagens
+            displayMessages();
+        }
+
+        function displayMessages() {
+            const savedNote = localStorage.getItem('comanda-mesa-1');
+            const messagesContainer = document.getElementById('messages-container');
+
+            // Limpar mensagens existentes
+            messagesContainer.innerHTML = '';
+
+            if (savedNote) {
+                const messages = JSON.parse(savedNote);
+
+                messages.forEach(message => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message');
+
+                    const messageContent = document.createElement('div');
+                    messageContent.classList.add('message-content');
+
+                    const messageName = document.createElement('p');
+                    messageName.classList.add('message-name');
+                    messageName.textContent = message.sender;
+
+                    const messageTime = document.createElement('p');
+                    messageTime.classList.add('message-time');
+                    messageTime.textContent = `Enviado em ${message.timestamp}`;
+
+                    const messageText = document.createElement('p');
+                    messageText.textContent = message.text;
+
+                    const cancelButton = document.createElement('button');
+                    cancelButton.classList.add('cancel-button');
+                    cancelButton.innerText = 'Cancelar';
+                    cancelButton.onclick = function () {
+                        cancelMessage(message.timestamp);
+                    };
+
+                    messageContent.appendChild(messageName);
+                    messageContent.appendChild(messageText);
+
+                    messageDiv.appendChild(messageContent);
+                    messageDiv.appendChild(messageTime);
+                    messageDiv.appendChild(cancelButton);
+
+                    messagesContainer.appendChild(messageDiv);
+                });
+            }
+        }
+
+        function cancelMessage(timestamp) {
+            let messages = JSON.parse(localStorage.getItem('comanda-mesa-1')) || [];
+            messages = messages.filter(message => message.timestamp !== timestamp);
+
+            localStorage.setItem('comanda-mesa-1', JSON.stringify(messages));
+
+            // Atualizar a exibição das mensagens
+            displayMessages();
+        }
+
+        function confirmClearMessages() {
+            const confirmation = confirm('Tem certeza de que deseja apagar todas as mensagens?');
+
+            if (confirmation) {
+                localStorage.removeItem('comanda-mesa-1');
+                // Atualizar a exibição das mensagens
+                displayMessages();
+            }
+        }
+    </script>
+</body>
+</html>
